@@ -5,7 +5,40 @@ plugins {
     id 'kotlin-android'
     id 'kotlin-parcelize'
     id 'kotlinx-serialization'
+    id 'com.grab.app-sizer'
 }
+
+appSizeAnalysis {
+    enabled = true
+    projectInput {
+        apk {
+            bundleToolFile = file("${rootProject.rootDir}/binary/bundletool-all-1.15.4.jar")
+            deviceSpecs = [
+                    file("${rootProject.rootDir}/app-size-config/device-1.json"),
+                    file("${rootProject.rootDir}/app-size-config/device-2.json")
+            ]
+        }
+        variantFilter { variant ->
+            variant.setIgnore(variant.flavors.contains("prod"))
+        }
+        enableMatchDebugVariant = false
+        largeFileThreshold = 10
+    }
+    metrics {
+        influxDB {
+            dbName = "sizer"
+            reportTableName = "app_size"
+            url = "http://localhost:8086"
+            username = "root"
+            password = "root"
+        }
+
+        customAttributes.putAll(
+                ["pipeline_id": "100"]
+        )
+    }
+}
+
 
 // Copy the signing.properties.sample file to ~/.sign/signing.properties and adjust the values.
 final File PROD_PROPS_FILE = new File(System.getProperty('user.home'), '.sign/signing.properties')
@@ -21,7 +54,7 @@ final JavaVersion JAVA_VERSION = JavaVersion.VERSION_17
 
 android {
     compileSdk 34
-
+    compileSdkVersion 34
     compileOptions {
         coreLibraryDesugaringEnabled true
 
@@ -71,7 +104,7 @@ android {
 
     sourceSets {
 
-        [ prod, beta, alpha, dev, custom ].forEach {
+        [prod, beta, alpha, dev, custom].forEach {
             it.java.srcDirs += 'src/extra/java'
             it.res.srcDirs += 'src/extra/res'
         }
@@ -133,7 +166,7 @@ android {
         custom {
             versionName computeVersionName(defaultConfig.versionCode, customChannel)
             // next line is for injecting a custom channel value into the custom/AndroidManifest.xml
-            manifestPlaceholders = [customChannel:getProperty('customChannel').toString()]
+            manifestPlaceholders = [customChannel: getProperty('customChannel').toString()]
             signingConfig signingConfigs.prod
         }
     }
@@ -209,7 +242,7 @@ dependencies {
     implementation 'androidx.work:work-runtime-ktx:2.9.0'
     implementation "org.wikimedia.metrics:metrics-platform:$metricsVersion"
 
-    implementation ('com.github.michael-rapp:chrome-like-tab-switcher:0.4.6') {
+    implementation('com.github.michael-rapp:chrome-like-tab-switcher:0.4.6') {
         exclude group: 'org.jetbrains'
     }
 
@@ -281,7 +314,7 @@ dependencies {
 }
 
 private setSigningConfigKey(config, Properties props) {
-    if(props != null) {
+    if (props != null) {
         config.storeFile = props['keystore'] == null ? null : file(props['keystore'])
         config.storePassword = props['store.pass']
         config.keyAlias = props['key.alias']

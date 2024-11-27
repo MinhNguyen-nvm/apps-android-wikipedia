@@ -6,16 +6,20 @@ buildscript {
         mavenLocal()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.5.0'
+        classpath 'com.android.tools.build:gradle:8.4.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
         classpath 'com.google.gms:google-services:4.4.2'
+        classpath 'com.google.gms:google-services:4.4.2'
+        classpath "com.grab:app-sizer-plugin:SNAPSHOT"
     }
 }
 
 plugins {
     id 'com.google.devtools.ksp' version '1.9.24-1.0.20' apply false
+//    id 'com.grab.app-sizer' version 'SNAPSHOT' apply false
 }
+
 
 allprojects {
     repositories {
